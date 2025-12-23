@@ -33,3 +33,14 @@
   prompts (markdown from `assets/prompts/`)
 - Supports both stdio (default) and SSE modes via `-sse` flag
 - Tools use Docker for isolated Python execution; require Docker installed
+
+## Python Execution & Playwright
+
+- Uses Docker image: `mcr.microsoft.com/playwright/python:v1.57.0-noble`
+- **Playwright version is automatically pinned to 1.57.0** when requested as a
+  module
+- Simply request `modules="playwright"` - no version specification needed
+- Screenshots and files must be saved to `/output` (maps to `python_output/` on
+  host)
+- See [PLAYWRIGHT.md](PLAYWRIGHT.md) for detailed usage examples and
+  troubleshooting

@@ -57,7 +57,7 @@ func main() {
 	// Python executor
 	pyTool := mcp.NewTool(
 		"execute_python",
-		mcp.WithDescription("Execute Python code in an isolated enviornment. Playwright and headless browser are available for web scraping. Use this tool when you need real time information. Only output printed to stdout or stderr is returned so ALWAYS use printstatements! Please note all code is run in an ephemeral environment and is discarded after execution so modules and code do NOT persist! Files can be saved to /output directory which persists after execution. The tool will return a list of files created/modified."),
+		mcp.WithDescription("Execute Python code in an isolated enviornment. Playwright and headless browser are available for web scraping. Use this tool when you need real time information. Only output printed to stdout or stderr is returned so ALWAYS use printstatements! Please note all code is run in an ephemeral environment and is discarded after execution so modules and code do NOT persist! Files can be saved to /output directory which persists after execution. The tool will return a list of files created/modified. NOTE: When using Playwright, simply request 'playwright' as a module - the correct version (1.57.0) will be automatically installed to match the Docker image browsers."),
 		mcp.WithString(
 			"code",
 			mcp.Required(),
@@ -181,6 +181,13 @@ func pyToolHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallT
 	var modules []string
 	if modStr := request.GetString("modules", ""); modStr != "" {
 		modules = strings.Split(modStr, ",")
+		// Pin playwright version to match Docker image
+		for i, mod := range modules {
+			trimmed := strings.TrimSpace(mod)
+			if trimmed == "playwright" {
+				modules[i] = "playwright==1.57.0"
+			}
+		}
 	}
 	// Lets create temp environment and execute the code
 	tmpDir, err := os.MkdirTemp("", "python_repl")
@@ -201,7 +208,7 @@ func pyToolHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallT
 		"--rm",
 		"-v", fmt.Sprintf("%s:/app", tmpDir),
 		"-v", fmt.Sprintf("%s:/output", outputDir),
-		"mcr.microsoft.com/playwright/python:v1.49.1-noble",
+		"mcr.microsoft.com/playwright/python:v1.57.0-noble",
 	}
 
 	shArgs := []string{}
