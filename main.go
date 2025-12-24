@@ -248,15 +248,16 @@ func pyToolHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallT
 	changedFiles := compareSnapshots(beforeSnapshot, afterSnapshot)
 
 	// Build result message with stdout/stderr and list of output files
-	result := string(out)
+	var resultBuilder strings.Builder
+	resultBuilder.WriteString(string(out))
 	if len(changedFiles) > 0 {
-		result += fmt.Sprintf("\n\n--- Output Files ---\nFiles created/modified in %s:\n", outputDir)
+		fmt.Fprintf(&resultBuilder, "\n\n--- Output Files ---\nFiles created/modified in %s:\n", outputDir)
 		for _, file := range changedFiles {
-			result += fmt.Sprintf("  - %s\n", file)
+			fmt.Fprintf(&resultBuilder, "  - %s\n", file)
 		}
 	}
 
-	return mcp.NewToolResultText(result), nil
+	return mcp.NewToolResultText(resultBuilder.String()), nil
 }
 
 // pushHandler is the handler for the send_push_notification tool
@@ -305,29 +306,59 @@ func pushHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToo
 
 // loadResourcesAndPrompts loads resources and prompts from markdown files in assets directory
 func loadResourcesAndPrompts(srv *server.MCPServer) {
-	// Load resources from assets/resources
+	// Load resources from assets/resources (recursively)
 	resourcesDir := "assets/resources"
-	if entries, err := os.ReadDir(resourcesDir); err == nil {
-		for _, entry := range entries {
-			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
-				loadResource(srv, filepath.Join(resourcesDir, entry.Name()))
-			}
-		}
-	} else {
-		fmt.Fprintf(os.Stderr, "Warning: Could not read resources directory: %v\n", err)
+	if err := loadResourcesRecursive(srv, resourcesDir); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Could not load resources: %v\n", err)
 	}
 
-	// Load prompts from assets/prompts
+	// Load prompts from assets/prompts (recursively)
 	promptsDir := "assets/prompts"
-	if entries, err := os.ReadDir(promptsDir); err == nil {
-		for _, entry := range entries {
-			if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
-				loadPrompt(srv, filepath.Join(promptsDir, entry.Name()))
-			}
-		}
-	} else {
-		fmt.Fprintf(os.Stderr, "Warning: Could not read prompts directory: %v\n", err)
+	if err := loadPromptsRecursive(srv, promptsDir); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Could not load prompts: %v\n", err)
 	}
+}
+
+// loadResourcesRecursive recursively loads all markdown files as resources from a directory
+func loadResourcesRecursive(srv *server.MCPServer, dir string) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		fullPath := filepath.Join(dir, entry.Name())
+		if entry.IsDir() {
+			// Recursively load subdirectories
+			if err := loadResourcesRecursive(srv, fullPath); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: Could not load resources from %s: %v\n", fullPath, err)
+			}
+		} else if strings.HasSuffix(entry.Name(), ".md") {
+			loadResource(srv, fullPath)
+		}
+	}
+	return nil
+}
+
+// loadPromptsRecursive recursively loads all markdown files as prompts from a directory
+func loadPromptsRecursive(srv *server.MCPServer, dir string) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		fullPath := filepath.Join(dir, entry.Name())
+		if entry.IsDir() {
+			// Recursively load subdirectories
+			if err := loadPromptsRecursive(srv, fullPath); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: Could not load prompts from %s: %v\n", fullPath, err)
+			}
+		} else if strings.HasSuffix(entry.Name(), ".md") {
+			loadPrompt(srv, fullPath)
+		}
+	}
+	return nil
 }
 
 // loadResource loads a resource from a markdown file

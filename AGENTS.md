@@ -44,3 +44,95 @@
   host)
 - See [PLAYWRIGHT.md](PLAYWRIGHT.md) for detailed usage examples and
   troubleshooting
+
+## Task Tracking with Beads
+
+**REQUIRED:** All agents MUST use Beads (`bd`) for task tracking and memory
+management in every project.
+
+### Why Beads?
+
+- **Persistent memory**: Git-backed issue tracking that survives sessions,
+  branches, and merges
+- **Dependency-aware**: Agents know what tasks are ready and what's blocked
+- **Zero conflicts**: Hash-based IDs (`bd-a1b2`) prevent merge collisions
+- **Multi-agent safe**: Multiple agents can work in parallel without conflicts
+- **Audit trail**: Every change tracked with full history
+
+### Core Workflow
+
+1. **Start every session** by checking ready work:
+   ```bash
+   bd ready --json
+   ```
+
+2. **Create beads for all work** (never use markdown TODO lists):
+   ```bash
+   bd create "Implement feature X" -p 1 --json
+   bd create "Add tests for feature X" -p 1 --json
+   ```
+
+3. **Update status as you work**:
+   ```bash
+   bd update bd-abc --status in_progress --json
+   ```
+
+4. **Close completed work**:
+   ```bash
+   bd close bd-abc --reason "Completed" --json
+   ```
+
+5. **End of session sync**:
+   ```bash
+   bd sync
+   ```
+
+### Azure DevOps Integration
+
+**IMPORTANT:** When creating beads that represent user-facing features or bugs,
+also create corresponding Azure DevOps work items:
+
+```bash
+# Create bead
+bd create "Fix validation bug in UserController" -t bug -p 0 --json
+
+# Create Azure DevOps work item
+az boards work-item create \
+  --type Bug \
+  --title "Fix validation bug in UserController" \
+  --description "Linked to bead: bd-abc123" \
+  --project "MyProject"
+
+# Link them
+bd update bd-abc123 --metadata "az_work_item=12345"
+```
+
+**When to create Azure DevOps work items:**
+
+- ✅ **ALWAYS** for: User-facing features, bugs, epics, sprint commitments
+- ⚠️ **OPTIONAL** for: Agent planning tasks, technical debt, internal sub-tasks
+- ❌ **NEVER** for: Transient notes, duplicate tracking
+
+### Essential Commands
+
+```bash
+# List all tasks
+bd list --json
+
+# Show task details
+bd show bd-abc --json
+
+# Add dependency (B blocks on A)
+bd dep add bd-B bd-A --type blocks
+
+# Show dependency graph
+bd graph
+
+# Sync to git
+bd sync
+```
+
+### Full Documentation
+
+See [Beads Integration Guide](assets/resources/processes/beads-integration.md)
+for comprehensive workflow, patterns, and best practices.

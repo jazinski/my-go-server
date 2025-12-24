@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "team-standards": {
+      "command": "/absolute/path/to/my-go-server/my-go-server",
+      "args": [],
+      "env": {}
+    }
+  }
+}
