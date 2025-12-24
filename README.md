@@ -54,6 +54,19 @@ development team with:
 
 3. **Restart OpenCode** and you're done! 🎉
 
+### ⚠️ Important: Rebuilding After Updates
+
+**The compiled binary is NOT checked into git** (this is intentional). After
+pulling updates:
+
+```bash
+git pull
+go build -o my-go-server .  # REQUIRED after every pull
+```
+
+**Why?** The `.gitignore` excludes the binary to keep the repo clean and support
+multiple platforms. You must rebuild locally after pulling code changes.
+
 ### Verify It Works
 
 Ask your AI assistant:
@@ -789,6 +802,19 @@ python3 test_doc_tools.py
 
 ## 🐛 Troubleshooting
 
+### Tools/Resources not available after git pull
+
+**Problem:** After `git pull`, OpenCode doesn't see new tools or documentation.
+
+**Solution:**
+
+```bash
+# The binary is NOT in git - you must rebuild after every pull!
+git pull
+go build -o my-go-server .
+# Restart OpenCode
+```
+
 ### Server won't start
 
 ```bash
@@ -818,6 +844,7 @@ go build -o my-go-server .
 2. Verify path in config is correct
 3. Restart OpenCode completely
 4. Check OpenCode logs for errors
+5. **Verify you rebuilt after git pull:** `go build -o my-go-server .`
 
 For more troubleshooting, see
 [TEAM_STANDARDS_SETUP.md](TEAM_STANDARDS_SETUP.md).
