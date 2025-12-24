@@ -59,6 +59,14 @@ development team with:
 **The compiled binary is NOT checked into git** (this is intentional). After
 pulling updates:
 
+**Option 1: Automated (recommended)**
+
+```bash
+./update.sh  # Pulls, rebuilds, and verifies automatically
+```
+
+**Option 2: Manual**
+
 ```bash
 git pull
 go build -o my-go-server .  # REQUIRED after every pull
@@ -66,6 +74,8 @@ go build -o my-go-server .  # REQUIRED after every pull
 
 **Why?** The `.gitignore` excludes the binary to keep the repo clean and support
 multiple platforms. You must rebuild locally after pulling code changes.
+
+See **[WORKFLOW.md](WORKFLOW.md)** for detailed workflows and troubleshooting.
 
 ### Verify It Works
 
