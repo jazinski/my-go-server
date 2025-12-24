@@ -816,7 +816,14 @@ python3 test_doc_tools.py
 
 **Problem:** `list_documentation` returns "documentation directory is empty"
 
-**Causes & Solutions:**
+**Quick Fix:** Run the diagnostic tool:
+
+```bash
+./diagnose.sh
+# Shows exactly what's wrong and provides correct config
+```
+
+**Common Causes & Solutions:**
 
 1. **Assets directory missing:**
    ```bash
