@@ -16,6 +16,15 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+// getExecutableDir returns the directory containing the executable
+func getExecutableDir() (string, error) {
+	ex, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Dir(ex), nil
+}
+
 // addSmartResourceTools adds tools for discovering and loading documentation resources
 func addSmartResourceTools(srv *server.MCPServer) {
 	// Tool to list available resources
@@ -26,13 +35,20 @@ func addSmartResourceTools(srv *server.MCPServer) {
 	srv.AddTool(listTool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		resources := []string{}
 
-		// Scan resources directory
-		filepath.Walk("assets/resources", func(path string, info os.FileInfo, err error) error {
+		// Get the directory where the binary is located
+		execDir, err := getExecutableDir()
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to get executable directory: %v", err)), nil
+		}
+
+		// Scan resources directory relative to executable
+		resourcesPath := filepath.Join(execDir, "assets", "resources")
+		filepath.Walk(resourcesPath, func(path string, info os.FileInfo, err error) error {
 			if err != nil || info.IsDir() || !strings.HasSuffix(path, ".md") {
 				return nil
 			}
 			// Get relative path from resources dir
-			relPath := strings.TrimPrefix(path, "assets/resources/")
+			relPath := strings.TrimPrefix(path, resourcesPath+string(filepath.Separator))
 			resources = append(resources, relPath)
 			return nil
 		})
@@ -96,7 +112,13 @@ func addSmartResourceTools(srv *server.MCPServer) {
 			return mcp.NewToolResultError("Invalid path: path traversal not allowed"), nil
 		}
 
-		fullPath := filepath.Join("assets/resources", docPath)
+		// Get the directory where the binary is located
+		execDir, err := getExecutableDir()
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to get executable directory: %v", err)), nil
+		}
+
+		fullPath := filepath.Join(execDir, "assets", "resources", docPath)
 		content, err := os.ReadFile(fullPath)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("Failed to load documentation: %v", err)), nil
@@ -399,16 +421,23 @@ func pushHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToo
 
 // loadResourcesAndPrompts loads resources and prompts from markdown files in assets directory
 func loadResourcesAndPrompts(srv *server.MCPServer) {
+	// Get the directory where the binary is located
+	execDir, err := getExecutableDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: Could not get executable directory: %v\n", err)
+		return
+	}
+
 	// Load resources from assets/resources (recursively)
-	resourcesDir := "assets/resources"
+	resourcesDir := filepath.Join(execDir, "assets", "resources")
 	if err := loadResourcesRecursive(srv, resourcesDir); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Could not load resources: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Warning: Could not load resources from %s: %v\n", resourcesDir, err)
 	}
 
 	// Load prompts from assets/prompts (recursively)
-	promptsDir := "assets/prompts"
+	promptsDir := filepath.Join(execDir, "assets", "prompts")
 	if err := loadPromptsRecursive(srv, promptsDir); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: Could not load prompts: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Warning: Could not load prompts from %s: %v\n", promptsDir, err)
 	}
 }
 
