@@ -136,3 +136,61 @@ bd sync
 
 See [Beads Integration Guide](assets/resources/processes/beads-integration.md)
 for comprehensive workflow, patterns, and best practices.
+
+## Team Documentation & Standards
+
+**IMPORTANT:** This MCP server provides access to team documentation via tools.
+Use these tools to load relevant standards and processes before starting work.
+
+### Available Documentation Tools
+
+- **`list_documentation`**: Lists all available documentation organized by
+  category (coding standards, processes, architecture, examples)
+- **`load_documentation`**: Loads the full content of a specific documentation
+  file
+
+### When to Load Documentation
+
+**ALWAYS load relevant documentation before:**
+
+- **Starting new code**: Load appropriate coding standard
+  - React: `coding-standards/reactjs-style-guide.md`
+  - .NET Core: `coding-standards/dotnet-core-style-guide.md`
+  - ColdFusion: `coding-standards/coldfusion-style-guide.md`
+  - API design: `coding-standards/api-design-guide.md`
+- **Task tracking setup**: Load `processes/beads-integration.md` for Beads
+  workflow
+- **Azure DevOps integration**: Load `processes/azure-devops-workflow.md` for
+  patterns
+- **Architecture decisions**: Load `architecture/system-design-principles.md`
+  for design guidance
+- **Database work**: Load `coding-standards/database-conventions.md` for schema
+  conventions
+
+### Documentation Workflow Example
+
+```bash
+# 1. List available docs
+list_documentation
+
+# 2. Load relevant standard based on task
+load_documentation "coding-standards/reactjs-style-guide.md"
+
+# 3. Proceed with implementation following loaded standards
+```
+
+### Quick Reference
+
+| Task Type              | Load This Documentation                       |
+| ---------------------- | --------------------------------------------- |
+| React component        | `coding-standards/reactjs-style-guide.md`     |
+| .NET Core API          | `coding-standards/dotnet-core-style-guide.md` |
+| Task tracking          | `processes/beads-integration.md`              |
+| Azure DevOps workflows | `processes/azure-devops-workflow.md`          |
+| Database schema        | `coding-standards/database-conventions.md`    |
+| Git workflow           | `coding-standards/git-workflow.md`            |
+| System architecture    | `architecture/system-design-principles.md`    |
+| Automation examples    | `examples/beads-azure-devops-automation.md`   |
+
+**Note:** Resources are also available via MCP resource protocol, but OpenCode
+requires explicit tool calls to access them.

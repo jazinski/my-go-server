@@ -16,6 +16,96 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 )
 
+// addSmartResourceTools adds tools for discovering and loading documentation resources
+func addSmartResourceTools(srv *server.MCPServer) {
+	// Tool to list available resources
+	listTool := mcp.NewTool("list_documentation",
+		mcp.WithDescription("List all available documentation resources (coding standards, processes, architecture guides, examples)"),
+	)
+
+	srv.AddTool(listTool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		resources := []string{}
+
+		// Scan resources directory
+		filepath.Walk("assets/resources", func(path string, info os.FileInfo, err error) error {
+			if err != nil || info.IsDir() || !strings.HasSuffix(path, ".md") {
+				return nil
+			}
+			// Get relative path from resources dir
+			relPath := strings.TrimPrefix(path, "assets/resources/")
+			resources = append(resources, relPath)
+			return nil
+		})
+
+		var result strings.Builder
+		result.WriteString("📚 Available Documentation:\n\n")
+
+		// Group by category
+		categories := map[string][]string{
+			"Coding Standards": {},
+			"Processes":        {},
+			"Architecture":     {},
+			"Examples":         {},
+			"Other":            {},
+		}
+
+		for _, res := range resources {
+			if strings.HasPrefix(res, "coding-standards/") {
+				categories["Coding Standards"] = append(categories["Coding Standards"], res)
+			} else if strings.HasPrefix(res, "processes/") {
+				categories["Processes"] = append(categories["Processes"], res)
+			} else if strings.HasPrefix(res, "architecture/") {
+				categories["Architecture"] = append(categories["Architecture"], res)
+			} else if strings.HasPrefix(res, "examples/") {
+				categories["Examples"] = append(categories["Examples"], res)
+			} else {
+				categories["Other"] = append(categories["Other"], res)
+			}
+		}
+
+		for _, category := range []string{"Coding Standards", "Processes", "Architecture", "Examples", "Other"} {
+			docs := categories[category]
+			if len(docs) > 0 {
+				result.WriteString(fmt.Sprintf("**%s:**\n", category))
+				for _, doc := range docs {
+					result.WriteString(fmt.Sprintf("  - %s\n", doc))
+				}
+				result.WriteString("\n")
+			}
+		}
+
+		result.WriteString("💡 Use load_documentation tool with the filename to read content")
+
+		return mcp.NewToolResultText(result.String()), nil
+	})
+
+	// Tool to load specific resource
+	loadTool := mcp.NewTool("load_documentation",
+		mcp.WithDescription("Load the content of a specific documentation file"),
+		mcp.WithString("path", mcp.Required(), mcp.Description("Path to documentation file (e.g., 'processes/beads-integration.md')")),
+	)
+
+	srv.AddTool(loadTool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		docPath, err := request.RequireString("path")
+		if err != nil {
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+
+		// Security: prevent path traversal
+		if strings.Contains(docPath, "..") {
+			return mcp.NewToolResultError("Invalid path: path traversal not allowed"), nil
+		}
+
+		fullPath := filepath.Join("assets/resources", docPath)
+		content, err := os.ReadFile(fullPath)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to load documentation: %v", err)), nil
+		}
+
+		return mcp.NewToolResultText(string(content)), nil
+	})
+}
+
 func main() {
 	// Load .env file
 	if err := godotenv.Load(); err != nil {
@@ -68,6 +158,9 @@ func main() {
 	)
 	// Add Tool Handler
 	srv.AddTool(pyTool, pyToolHandler)
+
+	// Add smart resource discovery and loading tools
+	addSmartResourceTools(srv)
 
 	// Start the server in the desired mode
 	if *sseMode {

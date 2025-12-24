@@ -203,6 +203,16 @@ The AI will reference your team standards automatically!
 
 ### Tools
 
+- **`list_documentation`** - List all available team documentation (NEW!)
+  - Auto-discovers docs in `assets/resources/`
+  - Categorizes by type (coding standards, processes, architecture)
+  - Perfect for OpenCode compatibility
+
+- **`load_documentation`** - Load specific documentation content (NEW!)
+  - Path-based loading (e.g., `processes/beads-integration.md`)
+  - Security: Path traversal protection
+  - Returns full markdown content
+
 - **`execute_python`** - Run Python code in isolated Docker container
   - Playwright support for web scraping
   - 30-second timeout
@@ -698,6 +708,84 @@ Beads) uses ~38,000 tokens. Legacy guides are only loaded when relevant.
 - [Model Context Protocol](https://modelcontextprotocol.io)
 - [MCP Go SDK](https://github.com/mark3labs/mcp-go)
 - [Conventional Commits](https://www.conventionalcommits.org/)
+
+## 📖 Documentation Tools (NEW!)
+
+**Problem:** OpenCode doesn't automatically load MCP resources.
+
+**Solution:** We've added explicit documentation tools that work perfectly with
+OpenCode!
+
+### Available Tools
+
+#### `list_documentation`
+
+Discover all available team documentation organized by category.
+
+```bash
+# In OpenCode, simply say:
+"List available documentation"
+```
+
+**Returns:**
+
+- Coding Standards (8 guides)
+- Processes (2 guides)
+- Architecture (1 guide)
+- Examples (1 guide)
+
+#### `load_documentation`
+
+Load specific documentation content.
+
+```bash
+# In OpenCode:
+"Load the React coding standards"
+"Load the Beads integration guide"
+"Load documentation from processes/azure-devops-workflow.md"
+```
+
+### When to Use
+
+**Agents should load documentation before:**
+
+- ✅ Starting new code (load relevant coding standard)
+- ✅ Task tracking (load Beads integration guide)
+- ✅ Azure DevOps work (load workflow patterns)
+- ✅ Architecture decisions (load design principles)
+- ✅ Database changes (load conventions)
+
+### Quick Reference
+
+| Task Type           | Documentation to Load                         |
+| ------------------- | --------------------------------------------- |
+| React component     | `coding-standards/reactjs-style-guide.md`     |
+| .NET Core API       | `coding-standards/dotnet-core-style-guide.md` |
+| Task tracking       | `processes/beads-integration.md`              |
+| Azure DevOps        | `processes/azure-devops-workflow.md`          |
+| Database schema     | `coding-standards/database-conventions.md`    |
+| Git workflow        | `coding-standards/git-workflow.md`            |
+| System architecture | `architecture/system-design-principles.md`    |
+
+### Testing
+
+Verify tools work:
+
+```bash
+python3 test_doc_tools.py
+```
+
+**Expected:** All 3 tests pass ✅
+
+### Learn More
+
+- **[DOCUMENTATION_TOOLS.md](DOCUMENTATION_TOOLS.md)** - Complete usage guide
+- **[MCP_RESOURCES_VS_TOOLS.md](MCP_RESOURCES_VS_TOOLS.md)** - Technical
+  deep-dive
+- **[QUICK_TEST.md](QUICK_TEST.md)** - Quick verification guide
+- **[COMPLETION_SUMMARY.md](COMPLETION_SUMMARY.md)** - Implementation summary
+
+---
 
 ## 🐛 Troubleshooting
 
