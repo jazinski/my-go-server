@@ -812,6 +812,40 @@ python3 test_doc_tools.py
 
 ## 🐛 Troubleshooting
 
+### "Empty documentation" or "no files available" error
+
+**Problem:** `list_documentation` returns "documentation directory is empty"
+
+**Causes & Solutions:**
+
+1. **Assets directory missing:**
+   ```bash
+   # Check if assets exist in same directory as binary
+   ls -la assets/
+   # Should show resources/ and prompts/ directories
+   ```
+
+2. **Binary separated from assets:**
+   ```bash
+   # ❌ WRONG: Binary copied away from repo
+   # /usr/local/bin/my-go-server (binary can't find ../assets)
+
+   # ✅ FIX: Keep binary with assets
+   # In OpenCode config, use full path to binary IN the repo:
+   {
+     "command": "/full/path/to/my-go-server/my-go-server"
+   }
+   ```
+
+3. **Forgot to rebuild after pull:**
+   ```bash
+   git pull
+   go build -o my-go-server .  # REQUIRED!
+   ```
+
+**The binary looks for assets/ relative to where the binary file is located.**
+Always keep the binary in the cloned repository directory.
+
 ### Tools/Resources not available after git pull
 
 **Problem:** After `git pull`, OpenCode doesn't see new tools or documentation.

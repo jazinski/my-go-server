@@ -62,7 +62,8 @@ go build -o my-go-server .
 
 - `main.go` - Source code
 - `go.mod`, `go.sum` - Dependencies
-- `assets/` - All documentation and prompts
+- `assets/` - All documentation and prompts **⚠️ MUST be in same directory as
+  binary**
 - `README.md`, `AGENTS.md`, etc. - Documentation
 - `.gitignore` - Git configuration
 
@@ -79,6 +80,33 @@ go build -o my-go-server .
 - Can be large (9+ MB)
 - Changes with every code update
 - Easy to rebuild from source: `go build -o my-go-server .`
+
+**⚠️ CRITICAL: Binary and Assets Must Be Together**
+
+The binary looks for `assets/` **relative to where the binary file is located**,
+not the current working directory. This means:
+
+✅ **Correct structure:**
+
+```
+my-go-server/
+├── my-go-server          (binary)
+├── assets/
+│   ├── resources/
+│   └── prompts/
+├── main.go
+└── ...
+```
+
+❌ **Won't work:**
+
+```
+/usr/local/bin/my-go-server          (binary)
+/somewhere/else/my-go-server/assets/  (assets)
+```
+
+**Solution:** Always keep the binary in the same directory where you cloned the
+repo.
 
 ## 🔄 Common Workflows
 
@@ -181,7 +209,29 @@ git add my-go-server
 
 **This is correct!** Binary should NOT be in git.
 
-### ❌ Mistake #3: Relative path in OpenCode config
+### ❌ Mistake #3: Moving binary away from assets directory
+
+```bash
+# ❌ WRONG - Binary separated from assets
+cp my-go-server /usr/local/bin/
+# Binary can't find assets/
+```
+
+**Fix:** Keep binary in the repo directory, or copy the entire directory:
+
+```bash
+# ✅ CORRECT - Keep binary with assets
+# In OpenCode config, point to binary in repo:
+{
+  "command": "/path/to/my-go-server/my-go-server"
+}
+
+# OR copy entire directory if needed:
+cp -r my-go-server /usr/local/share/
+# Then point to: /usr/local/share/my-go-server/my-go-server
+```
+
+### ❌ Mistake #4: Relative path in OpenCode config
 
 ```json
 {
@@ -207,7 +257,7 @@ git add my-go-server
 }
 ```
 
-### ❌ Mistake #4: Not restarting OpenCode
+### ❌ Mistake #5: Not restarting OpenCode
 
 ```bash
 git pull
