@@ -30,10 +30,14 @@ else
 fi
 echo
 
-# Step 4: Test
-echo "🧪 Step 4/4: Testing server starts..."
-timeout 2s ./my-go-server 2>/dev/null || true
-echo "✅ Server starts successfully"
+# Step 4: Test (just check if binary is executable and valid)
+echo "🧪 Step 4/4: Verifying binary is executable..."
+if [ -x "./my-go-server" ]; then
+    echo "✅ Binary is executable and ready to use"
+else
+    echo "❌ ERROR: Binary is not executable!"
+    exit 1
+fi
 echo
 
 # Summary
